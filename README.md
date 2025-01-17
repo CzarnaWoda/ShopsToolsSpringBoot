@@ -11,16 +11,16 @@
 ## **Spis treści**
 1. [Opis](#opis)
 2. [Endpointy](#endpointy)
-  - [Pobierz listę sklepów](#pobierz-listę-sklepów)
-  - [Pobierz sklep po nazwie](#pobierz-sklep-po-nazwie)
-  - [Pobierz sklep po ID](#pobierz-sklep-po-id)
-  - [Utwórz nowy sklep](#utwórz-nowy-sklep)
-  - [Zaktualizuj sklep](#zaktualizuj-sklep)
-  - [Usuń sklep](#usuń-sklep)
+    - [Pobierz listę sklepów](#pobierz-listę-sklepów)
+    - [Pobierz sklep po nazwie](#pobierz-sklep-po-nazwie)
+    - [Pobierz sklep po ID](#pobierz-sklep-po-id)
+    - [Utwórz nowy sklep](#utwórz-nowy-sklep)
+    - [Zaktualizuj sklep](#zaktualizuj-sklep)
+    - [Usuń sklep](#usuń-sklep)
 3. [Schematy](#schematy)
-  - [ShopCreateRequest](#shopcreaterequest)
-  - [ShopUpdateRequest](#shopupdaterequest)
-  - [HttpResponse](#httpresponse)
+    - [ShopCreateRequest](#shopcreaterequest)
+    - [ShopUpdateRequest](#shopupdaterequest)
+    - [HttpResponse](#httpresponse)
 
 ---
 
