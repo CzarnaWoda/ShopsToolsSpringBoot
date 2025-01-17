@@ -6,9 +6,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "shop")
@@ -16,7 +18,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Getter
-
+@Setter
 @Schema(description = "Model sklepu, sprzedającego narzędzia")
 public class Shop implements Serializable {
 
@@ -37,4 +39,11 @@ public class Shop implements Serializable {
 
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tool> tools;
+
+
+    public Shop(String name, String email) {
+        this.name = name;
+        this.email = email;
+        this.tools = new ArrayList<>();
+    }
 }
