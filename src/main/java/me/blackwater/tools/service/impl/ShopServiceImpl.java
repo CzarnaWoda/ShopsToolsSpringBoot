@@ -27,7 +27,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Cacheable(value = "shopByName", key = "#name")
     public Shop getShopByName(String name) throws ShopNotFoundException {
-        return shopRepository.getShopByName(name).orElseThrow(() -> new ShopNotFoundException("Shop has not been found (id)"));
+        return shopRepository.getShopByName(name).orElseThrow(() -> new ShopNotFoundException("Shop has not been found (name)"));
     }
 
     @Override

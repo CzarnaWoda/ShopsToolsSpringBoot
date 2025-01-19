@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+class GlobalExceptionHandler {
 
     @ExceptionHandler(ShopNotFoundException.class)
     public ResponseEntity<HttpResponse> handleShopNotFoundException(ShopNotFoundException e) {
