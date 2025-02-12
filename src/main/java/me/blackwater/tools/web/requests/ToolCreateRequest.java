@@ -10,6 +10,6 @@ public record ToolCreateRequest(
         @Positive
         int price,
         @PositiveOrZero
-        int shopId
+        long shopId
 ) {
 }

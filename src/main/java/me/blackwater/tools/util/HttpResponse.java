@@ -2,13 +2,13 @@ package me.blackwater.tools.util;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 
-@SuperBuilder
+@Builder
 @Data
 @Schema(description = "Standard response from endpoints to normalize all requests")
 public class HttpResponse {

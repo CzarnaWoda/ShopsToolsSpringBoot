@@ -1,107 +1,79 @@
 package me.blackwater.tools.repository;
 
 import me.blackwater.tools.model.Shop;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SpringExtension.class)
 @DataJpaTest
 class ShopRepositoryTests {
 
     @Autowired
     private ShopRepository shopRepository;
 
+    private Shop shop;
 
-    @Test
-    @Transactional
-    @Rollback
-    void testCreateShop(){
-        Shop shop = new Shop("test","test@email.com");
-
-        Shop saved = shopRepository.save(shop);
-
-
-        assertNotNull(saved);
-
-
-        assertEquals(shop.getName(), saved.getName());
+    @BeforeEach
+    void setUp() {
+        shop = new Shop();
+        shop.setName("Test Shop");
+        shop.setEmail("test@shop.com");
+        shop = shopRepository.save(shop);
     }
 
     @Test
-    @Transactional
-    @Rollback
-    void testGetShopById(){
-        // Przygotowanie danych
-        Shop shop = new Shop("test", "test@email.com");
-        Shop savedShop = shopRepository.save(shop); // Zapis obiektu w bazie danych
+    void getShopByName_ShouldReturnShop() {
+        Optional<Shop> foundShop = shopRepository.getShopByName("Test Shop");
 
-        // Pobranie obiektu z bazy danych
-        Optional<Shop> foundShop = shopRepository.findById(savedShop.getId());
-
-        // Weryfikacja
-        assertNotNull(foundShop);
         assertTrue(foundShop.isPresent());
-
-        final Shop s = foundShop.get();
-
-        assertNotNull(s);
-
-        assertEquals(savedShop.getId(), s.getId());
-        assertEquals(savedShop.getName(), s.getName());
-
+        assertEquals("Test Shop", foundShop.get().getName());
     }
 
     @Test
-    @Transactional
-    @Rollback
-    void testUpdateShop(){
-        Shop shop = new Shop("test", "test@email.com");
-        Shop savedShop = shopRepository.save(shop); // Zapis obiektu w bazie danych
+    void getShopById_ShouldReturnShop() {
+        Optional<Shop> foundShop = shopRepository.getShopById(shop.getId());
 
-        Optional<Shop> foundShop = shopRepository.findById(savedShop.getId());
-
-        assertNotNull(foundShop);
         assertTrue(foundShop.isPresent());
+        assertEquals(shop.getId(), foundShop.get().getId());
+    }
 
-        final Shop get = foundShop.get();
+    @Test
+    void existsShopById_ShouldReturnTrue() {
+        assertTrue(shopRepository.existsShopById(shop.getId()));
+    }
 
-        assertNotNull(get);
+    @Test
+    void existsShopByName_ShouldReturnTrue() {
+        assertTrue(shopRepository.existsShopByName("Test Shop"));
+    }
 
-        get.setName("New");
-        get.setEmail("new@email.com");
+    @Test
+    void updateShopById_ShouldUpdateShopDetails() {
+        shopRepository.updateShopById(shop.getId(), "Updated Shop", "updated@shop.com");
 
-        shopRepository.save(get);
-
-
-        final Optional<Shop> updatedShop = shopRepository.findById(get.getId());
+        // Pobranie encji bez cache
+        Optional<Shop> updatedShop = shopRepository.findById(shop.getId());
 
         assertTrue(updatedShop.isPresent());
-
-        assertEquals("New", updatedShop.get().getName());
-        assertEquals("new@email.com", updatedShop.get().getEmail());
+        assertEquals("Updated Shop", updatedShop.get().getName());
+        assertEquals("updated@shop.com", updatedShop.get().getEmail());
     }
 
+
     @Test
-    @Transactional
-    @Rollback
-    void testDeleteShop(){
-        Shop shop = new Shop("test", "test@email.com");
-        Shop savedShop = shopRepository.save(shop);
+    void deleteShopById_ShouldRemoveShop() {
+        shopRepository.deleteById(shop.getId());
 
-        Optional<Shop> foundShop = shopRepository.findById(savedShop.getId());
-
-        assertNotNull(foundShop);
-        assertTrue(foundShop.isPresent());
-
-        shopRepository.delete(shop);
-        Optional<Shop> deletedShop = shopRepository.findById(savedShop.getId());
+        Optional<Shop> deletedShop = shopRepository.getShopById(shop.getId());
 
         assertFalse(deletedShop.isPresent());
     }
-
 }

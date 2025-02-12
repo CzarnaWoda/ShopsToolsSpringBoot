@@ -27,7 +27,7 @@ import static org.springframework.http.HttpStatus.*;
 @RequiredArgsConstructor
 
 @Tag(name = "Shop API", description = "Endpointy do zarządzania sklepami")
-class ShopController {
+public class ShopController {
 
     private final ShopService shopService;
 
@@ -92,7 +92,8 @@ class ShopController {
             summary = "Pobiera liste sklepów",
             description = "Pobiera liste sklepów uwzgledniąjac wielkość strony, ilość sklepów na strone oraz sortowanie",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Wyslano liste sklepow. Lista moze byc pusta!")
+                    @ApiResponse(responseCode = "200", description = "Wyslano liste sklepow. Lista moze byc pusta!"),
+                    @ApiResponse(responseCode = "400", description = "Argument pageable jest nieprawidłowy (np. size = 0)")
             }
     )
     @GetMapping("/shops")
@@ -141,7 +142,7 @@ class ShopController {
             @Valid @RequestBody
             ShopCreateRequest shopCreateRequest
     ){
-        final Shop shop = shopService.createShop(new Shop(shopCreateRequest.name(),shopCreateRequest.email()));
+        final Shop shop = shopService.createShop(shopCreateRequest);
 
         return ResponseEntity.status(CREATED)
                 .body(HttpResponse.builder()
@@ -169,9 +170,7 @@ class ShopController {
     ){
         final Shop oldShop = shopService.getShopById(id);
 
-        final Shop newShop = shopMapper.toEntity(shopUpdateRequest);
-
-        final Shop updated = shopService.updateShop(oldShop,newShop);
+        final int updated = shopService.updateShop(oldShop,shopUpdateRequest);
 
         return ResponseEntity.status(OK).body(HttpResponse.builder()
                 .timeStamp(TimeUtil.getCurrentTimeStamp())
@@ -179,7 +178,7 @@ class ShopController {
                 .message("Shop has been updated")
                 .statusCode(OK.value())
                 .status(OK)
-                .data(Map.of("shop",shopMapper.toDto(updated))).build()
+                .data(Map.of("updated",updated)).build()
         );
     }
     @Operation(

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -16,8 +17,6 @@ import java.io.Serializable;
 
 @NoArgsConstructor
 @Getter
-
-
 @Schema(description = "Model narzędzia")
 public class Tool  implements Serializable {
 
@@ -25,6 +24,7 @@ public class Tool  implements Serializable {
     @Schema(description = "Numer seryjny modelu")
     private static final long serialVersionUID = 1L;
 
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Schema(description = "Id narzędzia", example = "1")
@@ -41,5 +41,10 @@ public class Tool  implements Serializable {
     @Schema(description = "Sklep w którym sprzedawane jest narzędzie")
     private Shop shop;
 
+    public Tool(String name, int price, Shop shop) {
+        this.name = name;
+        this.price = price;
+        this.shop = shop;
+    }
 
 }

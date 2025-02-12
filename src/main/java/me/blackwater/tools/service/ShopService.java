@@ -4,6 +4,9 @@ package me.blackwater.tools.service;
 import me.blackwater.tools.exception.ShopAlreadyExistException;
 import me.blackwater.tools.exception.ShopNotFoundException;
 import me.blackwater.tools.model.Shop;
+import me.blackwater.tools.web.requests.ShopCreateRequest;
+import me.blackwater.tools.web.requests.ShopUpdateRequest;
+import me.blackwater.tools.web.requests.ToolUpdateRequest;
 import org.springframework.data.domain.Page;
 
 
@@ -16,10 +19,12 @@ public interface ShopService {
 
     Page<Shop> getAllShops(int page, int size, String sortBy, String sortDir);
 
-    Shop createShop(Shop shop) throws ShopAlreadyExistException;
+    Shop createShop(ShopCreateRequest shopCreateRequest) throws ShopAlreadyExistException;
 
-    Shop updateShop(Shop oldShop, Shop newShop) throws ShopAlreadyExistException,ShopNotFoundException;
+    int updateShop(Shop oldShop, ShopUpdateRequest shopUpdateRequest) throws ShopAlreadyExistException,ShopNotFoundException;
 
     Shop deleteShop(long id) throws ShopNotFoundException;
+
+    boolean existShopById(long id);
 
 }

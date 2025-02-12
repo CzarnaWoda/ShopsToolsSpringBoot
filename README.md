@@ -1,172 +1,152 @@
-# Tools and Shops API Documentation
+# 🧐 Tools and Shops API
+### Dokumentacja API do zarządzania sklepami i narzędziami
 
-## **Informacje podstawowe**
-- **Tytuł:** Tools and Shops API Documentation
-- **Opis:** Dokumentacja API dla zarządzania narzędziami i sklepami.
-- **Wersja:** 1.0
-- **Serwer URL:** `http://localhost:8080`
-
----
-
-## **Spis treści**
-1. [Opis](#opis)
-2. [Endpointy](#endpointy)
-    - [Pobierz listę sklepów](#pobierz-listę-sklepów)
-    - [Pobierz sklep po nazwie](#pobierz-sklep-po-nazwie)
-    - [Pobierz sklep po ID](#pobierz-sklep-po-id)
-    - [Utwórz nowy sklep](#utwórz-nowy-sklep)
-    - [Zaktualizuj sklep](#zaktualizuj-sklep)
-    - [Usuń sklep](#usuń-sklep)
-3. [Schematy](#schematy)
-    - [ShopCreateRequest](#shopcreaterequest)
-    - [ShopUpdateRequest](#shopupdaterequest)
-    - [HttpResponse](#httpresponse)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1-green)
+![Java](https://img.shields.io/badge/Java-17-blue)
+![Maven](https://img.shields.io/badge/Maven-3.8-orange)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-316192)
 
 ---
 
-## **Opis**
-API umożliwia zarządzanie sklepami w systemie. Możesz:
-- Pobierać listy sklepów.
-- Wyszukiwać sklepy po nazwie lub ID.
-- Tworzyć nowe sklepy.
-- Aktualizować istniejące sklepy.
-- Usuwać sklepy.
+## 📈 **Opis projektu**
+  * Projekt został stworzony w celu użycia testów jednostkowych oraz stworzenia automatycznej dokumentacji za pomocą [OpenAPI](https://springdoc.org/)
+
+**Tools and Shops API** to RESTful API do zarządzania sklepami i narzędziami, umożliwiające:
+- 📦 **Dodawanie** nowych sklepów i narzędzi
+- 🔄 **Aktualizację** istniejących zasobów
+- 🔍 **Pobieranie** informacji o narzędziach i sklepach
+- ❌ **Usuwanie** sklepów i narzędzi
+
+API wykorzystuje **Spring Boot, Spring Data JPA, PostgreSQL, Hibernate oraz OpenAPI 3.1 (Swagger UI).**
 
 ---
 
-## **Endpointy**
+## 🚀 **Instalacja i konfiguracja**
+### 1️⃣ **Wymagania**
+- Java 17+
+- Maven 3.8+
+- PostgreSQL 14+ (lub H2 dla testów)
 
-### **Pobierz listę sklepów**
-**GET** `/api/v1/shop/shops`
+### 2️⃣ **Klonowanie repozytorium**
+```bash
+git clone https://github.com/CzarnaWoda/ShopsToolsSpringBoot
+cd ShopsToolsSpringBoot
+```
 
-- **Opis:** Pobiera listę sklepów z uwzględnieniem paginacji i sortowania.
-- **Parametry zapytania:**
-  | Parametr  | Lokalizacja | Typ     | Opis                           | Przykład |
-  |-----------|-------------|---------|--------------------------------|----------|
-  | `page`    | `query`     | integer | Numer strony                   | `0`      |
-  | `size`    | `query`     | integer | Rozmiar strony                 | `10`     |
-  | `sortBy`  | `query`     | string  | Pole do sortowania             | `id`     |
-  | `sortDir` | `query`     | string  | Kierunek sortowania (asc/desc) | `asc`    |
+### 3️⃣ **Konfiguracja bazy danych**
+Edytuj `src/main/resources/application.properties`:
 
-- **Odpowiedzi:**
-  - `200 OK` – Lista sklepów została zwrócona.
+```properties
+#Database configuration
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=Użytkownik
+spring.datasource.password=Hasło
+spring.jpa.generate-ddl=true
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=create-drop
+
+```
+
+Jeśli chcesz używać **H2 w testach**, dodaj:
+```properties
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.h2.console.enabled=true
+spring.jpa.hibernate.ddl-auto=update
+```
+
+### 4️⃣ **Uruchomienie aplikacji**
+#### 💻 **Bezpośrednio z Mavena**
+```bash
+mvn spring-boot:run
+```
+
+#### 🐥 **Uruchomienie z Dockerem (opcjonalnie)**
+Jeśli masz Docker, możesz uruchomić aplikację w kontenerze PostgreSQL:
+```bash
+docker-compose up -d
+```
+**Plik `docker-compose.yml`:**
+```yaml
+version: '3.1'
+services:
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: tools_db
+    ports:
+      - "5432:5432"
+```
 
 ---
 
-### **Pobierz sklep po nazwie**
-**GET** `/api/v1/shop/name/{shopName}`
+## 📖 **API Reference**
+### 🔹 **Swagger UI**
+Po uruchomieniu aplikacji możesz zobaczyć pełną dokumentację API w **Swagger UI**:  
+🔗 [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
-- **Opis:** Pozwala pobrać sklep po jego nazwie.
-- **Parametry ścieżki:**
-  | Parametr   | Lokalizacja | Typ     | Opis                 | Przykład               |
-  |------------|-------------|---------|----------------------|------------------------|
-  | `shopName` | `path`      | string  | Nazwa sklepu         | `Sklep z narzędziami`  |
-
-- **Odpowiedzi:**
-  - `200 OK` – Sklep z podaną nazwą został znaleziony.
-  - `404 Not Found` – Sklep z podaną nazwą nie został znaleziony.
+### 🔹 **OpenAPI JSON**
+🔗 [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 ---
 
-### **Pobierz sklep po ID**
-**GET** `/api/v1/shop/id/{id}`
+## 📈 **Endpoints**
 
-- **Opis:** Pobiera sklep po jego ID.
-- **Parametry ścieżki:**
-  | Parametr | Lokalizacja | Typ     | Opis            | Przykład |
-  |----------|-------------|---------|-----------------|----------|
-  | `id`     | `path`      | integer | ID sklepu       | `1`      |
+### 🔹 **1. Shops API**
+| Metoda | Endpoint | Opis |
+|--------|---------|------|
+| `POST` | `/api/v1/shop/create` | Tworzy nowy sklep |
+| `PUT` | `/api/v1/shop/update/{id}` | Aktualizuje dane sklepu |
+| `GET` | `/api/v1/shop/id/{id}` | Pobiera sklep po ID |
+| `GET` | `/api/v1/shop/name/{name}` | Pobiera sklep po nazwie |
+| `GET` | `/api/v1/shop/shops?page=0&size=10&sortBy=id&sortDir=asc` | Pobiera listę sklepów (paginacja) |
+| `DELETE` | `/api/v1/shop/delete/{id}` | Usuwa sklep |
 
-- **Odpowiedzi:**
-  - `200 OK` – Sklep z podanym ID został znaleziony.
-  - `404 Not Found` – Sklep z podanym ID nie został znaleziony.
+### 🔹 **2. Tools API**
+| Metoda | Endpoint | Opis |
+|--------|---------|------|
+| `POST` | `/api/v1/tool/create` | Tworzy nowe narzędzie |
+| `PUT` | `/api/v1/tool/update/{id}` | Aktualizuje narzędzie po ID |
+| `GET` | `/api/v1/tool/id/{id}` | Pobiera narzędzie po ID |
+| `GET` | `/api/v1/tool/name/{name}` | Pobiera narzędzie po nazwie |
+| `GET` | `/api/v1/tool/shop/{shopId}` | Pobiera narzędzia dla danego sklepu |
+| `DELETE` | `/api/v1/tool/delete/{id}` | Usuwa narzędzie |
 
 ---
 
-### **Utwórz nowy sklep**
-**POST** `/api/v1/shop/create`
-
-- **Opis:** Tworzy nowy sklep zgodnie z przesłanymi danymi.
-- **Body requestu:**
-  ```json
-  {
-    "name": "Nowy Sklep",
-    "email": "kontakt@nowysklep.pl"
+## 📈 **Przykłady requestów**
+### 1️⃣ **Tworzenie nowego sklepu**
+#### 🟢 **Request (POST `/api/v1/shop/create`)**
+```json
+{
+  "name": "Super Tool Store",
+  "email": "contact@toolstore.com"
+}
+```
+#### 🟢 **Response (201 CREATED)**
+```json
+{
+  "timeStamp": "2024-02-11T12:34:56",
+  "status": "201 CREATED",
+  "statusCode": 201,
+  "message": "Shop has been created",
+  "data": {
+    "shop": {
+      "id": 1,
+      "name": "Super Tool Store",
+      "email": "contact@toolstore.com"
+    }
   }
-  ```
-
-- **Odpowiedzi:**
-  - `201 Created` – Sklep został utworzony.
-  - `400 Bad Request` – Sklep o takich parametrach już istnieje.
+}
+```
 
 ---
 
-### **Zaktualizuj sklep**
-**PUT** `/api/v1/shop/update/{id}`
+## 🔧 **Autorzy**
+- **[CzarnaWoda](https://github.com/CzarnaWoda)**
 
-- **Opis:** Aktualizuje dane sklepu na podstawie przesłanych informacji.
-- **Parametry ścieżki:**
-  | Parametr | Lokalizacja | Typ     | Opis                       | Przykład |
-  |----------|-------------|---------|----------------------------|----------|
-  | `id`     | `path`      | integer | ID sklepu do zaktualizowania | `1`      |
-
-- **Body requestu:**
-  ```json
-  {
-    "shopName": "Zaktualizowany Sklep",
-    "email": "kontakt@zaktualizowanysklep.pl"
-  }
-  ```
-
-- **Odpowiedzi:**
-  - `200 OK` – Sklep został zaktualizowany.
-  - `400 Bad Request` – Sklep z taką nazwą już istnieje.
-  - `404 Not Found` – Sklep z podanym ID nie istnieje.
-
----
-
-### **Usuń sklep**
-**DELETE** `/api/v1/shop/delete/{id}`
-
-- **Opis:** Usuwa sklep na podstawie ID.
-- **Parametry ścieżki:**
-  | Parametr | Lokalizacja | Typ     | Opis            | Przykład |
-  |----------|-------------|---------|-----------------|----------|
-  | `id`     | `path`      | integer | ID sklepu       | `1`      |
-
-- **Odpowiedzi:**
-  - `200 OK` – Sklep został pomyślnie usunięty.
-  - `404 Not Found` – Sklep z podanym ID nie istnieje.
-
----
-
-## **Schematy**
-
-### **ShopCreateRequest**
-- **Opis:** Request zawierający dane nowego sklepu.
-- **Struktura:**
-  | Pole  | Typ     | Opis                        | Przykład                  |
-  |-------|---------|-----------------------------|---------------------------|
-  | `name` | string  | Nazwa sklepu (6-50 znaków) | `"Nowy Sklep"`           |
-  | `email`| string  | Email kontaktowy sklepu    | `"kontakt@nowysklep.pl"` |
-
-### **ShopUpdateRequest**
-- **Opis:** Request zawierający dane do aktualizacji sklepu.
-- **Struktura:**
-  | Pole      | Typ     | Opis                        | Przykład                           |
-  |-----------|---------|-----------------------------|------------------------------------|
-  | `shopName`| string  | Nowa nazwa sklepu (6-50 znaków) | `"Zaktualizowany Sklep"`         |
-  | `email`   | string  | Nowy email kontaktowy sklepu | `"kontakt@zaktualizowanysklep.pl"` |
-
-### **HttpResponse**
-- **Opis:** Standardowa odpowiedź z endpointów API.
-- **Struktura:**
-  | Pole        | Typ     | Opis                                     |
-  |-------------|---------|------------------------------------------|
-  | `timeStamp` | string  | Aktualny czas odpowiedzi                 |
-  | `status`    | string  | Status odpowiedzi (np. `200 OK`)         |
-  | `statusCode`| integer | Kod statusu odpowiedzi                   |
-  | `reason`    | string  | Powód odpowiedzi                        |
-  | `message`   | string  | Wiadomość informacyjna                  |
-  | `data`      | object  | Dane zwrócone w odpowiedzi (jeśli występują) |
 

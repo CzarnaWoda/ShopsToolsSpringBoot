@@ -2,9 +2,12 @@ package me.blackwater.tools.service;
 
 import me.blackwater.tools.exception.ShopAlreadyExistException;
 import me.blackwater.tools.exception.ShopNotFoundException;
+import me.blackwater.tools.mapper.ShopMapper;
 import me.blackwater.tools.model.Shop;
 import me.blackwater.tools.repository.ShopRepository;
 import me.blackwater.tools.service.impl.ShopServiceImpl;
+import me.blackwater.tools.web.requests.ShopCreateRequest;
+import me.blackwater.tools.web.requests.ShopUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,150 +25,157 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ShopServiceTests {
 
-    @Mock
-    private ShopRepository shopRepository;
+        @Mock
+        private ShopRepository shopRepository;
 
-    @InjectMocks
-    private ShopServiceImpl shopService;
+        @Mock
+        private ShopMapper shopMapper;
 
-    private Shop shop;
+        @InjectMocks
+        private ShopServiceImpl shopService;
 
-    @BeforeEach
-    void setup() {
-        shop = new Shop("Test Shop", "test@example.com");
-        shop.setId(1L);
-    }
+        private Shop sampleShop;
+        private ShopCreateRequest shopCreateRequest;
+        private ShopUpdateRequest shopUpdateRequest;
 
-    @Test
-    void getShopByNameTests() {
-        when(shopRepository.getShopByName("Test Shop")).thenReturn(Optional.of(shop));
+        @BeforeEach
+        void setUp() {
+            sampleShop = new Shop();
+            sampleShop.setId(1L);
+            sampleShop.setName("Test Shop");
+            sampleShop.setEmail("test@shop.com");
 
-        Shop result = shopService.getShopByName("Test Shop");
+            shopCreateRequest = new ShopCreateRequest("New Shop", "new@shop.com");
+            shopUpdateRequest = new ShopUpdateRequest("Updated Shop", "updated@shop.com");
+        }
 
-        assertNotNull(result);
-        assertEquals("Test Shop", result.getName());
-        assertEquals("test@example.com", result.getEmail());
-        verify(shopRepository, times(1)).getShopByName("Test Shop");
-    }
+        @Test
+        void getShopByName_Success() throws ShopNotFoundException {
+            when(shopRepository.getShopByName("Test Shop")).thenReturn(Optional.of(sampleShop));
 
-    @Test
-    void getShopByNameExceptionTests() {
-        when(shopRepository.getShopByName("Nonexistent Shop")).thenReturn(Optional.empty());
+            Shop foundShop = shopService.getShopByName("Test Shop");
 
-        assertThrows(ShopNotFoundException.class, () -> shopService.getShopByName("Nonexistent Shop"));
-        verify(shopRepository, times(1)).getShopByName("Nonexistent Shop");
-    }
+            assertNotNull(foundShop);
+            assertEquals("Test Shop", foundShop.getName());
+            verify(shopRepository, times(1)).getShopByName("Test Shop");
+        }
 
-    @Test
-    void getShopByIdTests() {
-        when(shopRepository.getShopById(1L)).thenReturn(Optional.of(shop));
+        @Test
+        void getShopByName_ShouldThrowException_WhenShopNotFound() {
+            when(shopRepository.getShopByName("Nonexistent Shop")).thenReturn(Optional.empty());
 
-        Shop result = shopService.getShopById(1L);
+            assertThrows(ShopNotFoundException.class, () -> shopService.getShopByName("Nonexistent Shop"));
+        }
 
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        verify(shopRepository, times(1)).getShopById(1L);
-    }
+        @Test
+        void getShopById_Success() throws ShopNotFoundException {
+            when(shopRepository.getShopById(1L)).thenReturn(Optional.of(sampleShop));
 
-    @Test
-    void getShopByIdExceptionTests() {
-        when(shopRepository.getShopById(99L)).thenReturn(Optional.empty());
+            Shop foundShop = shopService.getShopById(1L);
 
-        assertThrows(ShopNotFoundException.class, () -> shopService.getShopById(99L));
-        verify(shopRepository, times(1)).getShopById(99L);
-    }
+            assertNotNull(foundShop);
+            assertEquals(1L, foundShop.getId());
+            verify(shopRepository, times(1)).getShopById(1L);
+        }
 
-    @Test
-    void getAllShopsTests() {
-        // Przygotowanie danych
-        Sort sort = Sort.by(Sort.Direction.ASC, "id");
-        Pageable pageable = PageRequest.of(0, 10, sort);
-        Page<Shop> page = new PageImpl<>(Collections.singletonList(shop));
+        @Test
+        void getShopById_ShouldThrowException_WhenShopNotFound() {
+            when(shopRepository.getShopById(999L)).thenReturn(Optional.empty());
 
-        // Stubbing
-        when(shopRepository.findAll(pageable)).thenReturn(page);
+            assertThrows(ShopNotFoundException.class, () -> shopService.getShopById(999L));
+        }
 
-        // Wywołanie metody
-        Page<Shop> result = shopService.getAllShops(0, 10, "id", "asc");
+        @Test
+        void getAllShops_Success() {
+            Page<Shop> page = new PageImpl<>(List.of(sampleShop));
+            Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name"));
 
-        // Weryfikacja
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        verify(shopRepository, times(1)).findAll(pageable);
-    }
+            when(shopRepository.findAll(pageable)).thenReturn(page);
+
+            Page<Shop> result = shopService.getAllShops(0, 10, "name", "asc");
+
+            assertFalse(result.isEmpty());
+            assertEquals(1, result.getTotalElements());
+            verify(shopRepository, times(1)).findAll(pageable);
+        }
+
+        @Test
+        void createShop_Success() throws ShopAlreadyExistException {
+            when(shopRepository.existsShopByName(shopCreateRequest.name())).thenReturn(false);
+            when(shopMapper.toEntity(shopCreateRequest)).thenReturn(sampleShop);
+            when(shopRepository.save(sampleShop)).thenReturn(sampleShop);
+
+            Shop createdShop = shopService.createShop(shopCreateRequest);
+
+            assertNotNull(createdShop);
+            assertEquals("Test Shop", createdShop.getName());
+            verify(shopRepository, times(1)).save(sampleShop);
+        }
+
+        @Test
+        void createShop_ShouldThrowException_WhenShopAlreadyExists() {
+            when(shopRepository.existsShopByName(shopCreateRequest.name())).thenReturn(true);
+
+            assertThrows(ShopAlreadyExistException.class, () -> shopService.createShop(shopCreateRequest));
+        }
+
+        @Test
+        void updateShop_Success() throws ShopAlreadyExistException, ShopNotFoundException {
+            when(shopRepository.getShopByName(shopUpdateRequest.shopName())).thenReturn(Optional.empty());
+            when(shopRepository.updateShopById(sampleShop.getId(), shopUpdateRequest.shopName(), shopUpdateRequest.email()))
+                    .thenReturn(1); // 1 oznacza, że aktualizacja się powiodła
+
+            int updatedRows = shopService.updateShop(sampleShop, shopUpdateRequest);
+
+            assertEquals(1, updatedRows); // Oczekujemy, że metoda zwróci 1, bo 1 rekord został zmieniony
+            verify(shopRepository, times(1)).updateShopById(sampleShop.getId(), "Updated Shop", "updated@shop.com");
+        }
 
 
-    @Test
-    void createShopTests() {
-        when(shopRepository.getShopByName("Test Shop")).thenReturn(Optional.empty());
-        when(shopRepository.save(shop)).thenReturn(shop);
 
-        Shop result = shopService.createShop(shop);
 
-        assertNotNull(result);
-        assertEquals("Test Shop", result.getName());
-        verify(shopRepository, times(1)).getShopByName("Test Shop");
-        verify(shopRepository, times(1)).save(shop);
-    }
+        @Test
+        void updateShop_ShouldThrowException_WhenNewNameExists() {
+            when(shopRepository.getShopByName(shopUpdateRequest.shopName())).thenReturn(Optional.of(new Shop()));
 
-    @Test
-    void createShopExceptionTests() {
-        when(shopRepository.getShopByName("Test Shop")).thenReturn(Optional.of(shop));
+            assertThrows(ShopAlreadyExistException.class, () -> shopService.updateShop(sampleShop, shopUpdateRequest));
+        }
+        @Test
+        void updateShop_NoChanges_ShouldReturnZero() throws ShopAlreadyExistException, ShopNotFoundException {
+            ShopUpdateRequest noChangeRequest = new ShopUpdateRequest(sampleShop.getName(), sampleShop.getEmail());
 
-        assertThrows(ShopAlreadyExistException.class, () -> shopService.createShop(shop));
-        verify(shopRepository, times(1)).getShopByName("Test Shop");
-        verify(shopRepository, never()).save(any(Shop.class));
-    }
+            int updatedRows = shopService.updateShop(sampleShop, noChangeRequest);
 
-    @Test
-    void updateShopTests() {
-        Shop newShop = new Shop("Updated Shop", "updated@example.com");
+            assertEquals(0, updatedRows); // Oczekujemy, że 0 wierszy zostało zmienionych
+            verify(shopRepository, never()).updateShopById(anyLong(), anyString(), anyString()); // Nie powinno być wywołania update
+        }
 
-        when(shopRepository.getShopByName("Updated Shop")).thenReturn(Optional.empty());
-        when(shopRepository.save(shop)).thenReturn(shop);
 
-        Shop result = shopService.updateShop(shop, newShop);
-
-        assertNotNull(result);
-        assertEquals("Updated Shop", result.getName());
-        assertEquals("updated@example.com", result.getEmail());
-        verify(shopRepository, times(1)).getShopByName("Updated Shop");
-        verify(shopRepository, times(1)).save(shop);
-
-        assertThrows(ShopNotFoundException.class, () -> shopService.getShopByName("Test Shop"));
-    }
-
-    @Test
-    void updateShopExceptionTests() {
-        Shop newShop = new Shop("Updated Shop", "updated@example.com");
-        newShop.setId(1L);
-
-        when(shopRepository.getShopByName("Updated Shop")).thenReturn(Optional.of(newShop));
-
-        assertThrows(ShopAlreadyExistException.class, () -> shopService.updateShop(shop, newShop));
-        verify(shopRepository, times(1)).getShopByName("Updated Shop");
-        verify(shopRepository, never()).save(any(Shop.class));
-    }
-
-    @Test
-    void deleteShopTests() {
-        when(shopRepository.getShopById(1L)).thenReturn(Optional.of(shop));
-        doNothing().when(shopRepository).deleteById(1L);
-
-        Shop result = shopService.deleteShop(1L);
-
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        verify(shopRepository, times(1)).getShopById(1L);
-        verify(shopRepository, times(1)).deleteById(1L);
-    }
 
     @Test
-    void deleteShopExceptionTests() {
-        when(shopRepository.getShopById(99L)).thenReturn(Optional.empty());
+        void deleteShop_Success() throws ShopNotFoundException {
+            when(shopRepository.getShopById(1L)).thenReturn(Optional.of(sampleShop));
 
-        assertThrows(ShopNotFoundException.class, () -> shopService.deleteShop(99L));
-        verify(shopRepository, times(1)).getShopById(99L);
-        verify(shopRepository, never()).deleteById(anyLong());
-    }
+            Shop deletedShop = shopService.deleteShop(1L);
+
+            assertNotNull(deletedShop);
+            verify(shopRepository, times(1)).deleteById(1L);
+        }
+
+        @Test
+        void deleteShop_ShouldThrowException_WhenShopNotFound() {
+            when(shopRepository.getShopById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(ShopNotFoundException.class, () -> shopService.deleteShop(999L));
+        }
+
+        @Test
+        void existShopById_Success() {
+            when(shopRepository.existsShopById(1L)).thenReturn(true);
+
+            boolean exists = shopService.existShopById(1L);
+
+            assertTrue(exists);
+            verify(shopRepository, times(1)).existsShopById(1L);
+        }
 }

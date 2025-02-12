@@ -1,10 +1,7 @@
 package me.blackwater.tools.web.exception;
 
 
-import me.blackwater.tools.exception.ShopAlreadyExistException;
-import me.blackwater.tools.exception.ShopNotFoundException;
-import me.blackwater.tools.exception.ToolAlreadyExistException;
-import me.blackwater.tools.exception.ToolNotFoundException;
+import me.blackwater.tools.exception.*;
 import me.blackwater.tools.util.HttpResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,6 +58,17 @@ class GlobalExceptionHandler {
                         .status(BAD_REQUEST)
                         .statusCode(BAD_REQUEST.value())
                         .reason("Tool already exist")
+                        .message(e.getMessage())
+                        .build());
+    }
+    @ExceptionHandler(IllegalPageableArgumentException.class)
+    public ResponseEntity<HttpResponse> handleIllegalPageableArgumentException(IllegalPageableArgumentException e) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(HttpResponse.builder()
+                        .timeStamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")))
+                        .status(BAD_REQUEST)
+                        .statusCode(BAD_REQUEST.value())
+                        .reason("Illegal pageable argument - " + e.getMessage())
                         .message(e.getMessage())
                         .build());
     }

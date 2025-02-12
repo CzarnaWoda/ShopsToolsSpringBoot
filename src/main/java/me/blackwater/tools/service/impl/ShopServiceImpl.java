@@ -1,11 +1,15 @@
 package me.blackwater.tools.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import me.blackwater.tools.exception.IllegalPageableArgumentException;
 import me.blackwater.tools.exception.ShopAlreadyExistException;
 import me.blackwater.tools.exception.ShopNotFoundException;
+import me.blackwater.tools.mapper.ShopMapper;
 import me.blackwater.tools.model.Shop;
 import me.blackwater.tools.repository.ShopRepository;
 import me.blackwater.tools.service.ShopService;
+import me.blackwater.tools.web.requests.ShopCreateRequest;
+import me.blackwater.tools.web.requests.ShopUpdateRequest;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ShopServiceImpl implements ShopService {
 
     private final ShopRepository shopRepository;
+    private final ShopMapper shopMapper;
 
 
     @Override
@@ -41,6 +46,12 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Cacheable(value = "allShops", key = "'page-' + #page + '-size-' + #size")
     public Page<Shop> getAllShops(int page, int size, String sortBy, String sortDir) {
+        if(page < 0){
+            throw new IllegalPageableArgumentException("page must be greater than 0");
+        }
+        if(size <= 0){
+            throw new IllegalPageableArgumentException("page size must be greater than 0");
+        }
 
         final Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
 
@@ -52,20 +63,21 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Caching(
             put = {
-                    @CachePut(value = "shopById", key = "#shop.id"),
-                    @CachePut(value = "shopByName", key = "#shop.name")
+                    @CachePut(value = "shopById", key = "#result.id"),
+                    @CachePut(value = "shopByName", key = "#result.name")
             },
             evict = {
-                    @CacheEvict(value = "allShops", allEntries = true)
+                    @CacheEvict(value = "allShops", allEntries = true),
+                    @CacheEvict(value = "existShopById", key = "#result.id")
             }
     )
     @Transactional
-    public Shop createShop(Shop shop) throws ShopAlreadyExistException {
-        if(shopRepository.getShopByName(shop.getName()).isPresent()){
+    public Shop createShop(ShopCreateRequest shopCreateRequest) throws ShopAlreadyExistException {
+        if(shopRepository.existsShopByName(shopCreateRequest.name())){
             throw new ShopAlreadyExistException("Shop already exist");
         }
 
-        return shopRepository.save(shop);
+        return shopRepository.save(shopMapper.toEntity(shopCreateRequest));
     }
 
     @Override
@@ -81,27 +93,26 @@ public class ShopServiceImpl implements ShopService {
             }
     )
     @Transactional
-    public Shop updateShop(Shop oldShop, Shop newShop) throws ShopAlreadyExistException, ShopNotFoundException {
-        if (!oldShop.getName().equals(newShop.getName()) &&
-                shopRepository.getShopByName(newShop.getName()).isPresent()) {
+    public int updateShop(Shop oldShop, ShopUpdateRequest shopUpdateRequest) throws ShopAlreadyExistException, ShopNotFoundException {
+        if (!oldShop.getName().equals(shopUpdateRequest.shopName()) &&
+                shopRepository.getShopByName(shopUpdateRequest.shopName()).isPresent()) {
             throw new ShopAlreadyExistException("Shop with that name already exists");
         }
 
-        if (oldShop.equals(newShop)) {
-            return oldShop;
+        if (oldShop.getName().equals(shopUpdateRequest.shopName()) && oldShop.getEmail().equals(shopUpdateRequest.email())) {
+            return 0;
         }
 
-        oldShop.setName(newShop.getName());
-        oldShop.setEmail(newShop.getEmail());
-
-        return shopRepository.save(oldShop);
+        return shopRepository.updateShopById(oldShop.getId(), shopUpdateRequest.shopName(),shopUpdateRequest.email());
     }
 
 
     @Override
     @Caching(evict = {
             @CacheEvict(value = "shopById", key = "#id"),
-            @CacheEvict(value = "shopByName", key = "#result.name")
+            @CacheEvict(value = "shopByName", key = "#result.name"),
+            @CacheEvict(value = "allShops", allEntries = true),
+            @CacheEvict(value = "existShopById", key = "#id")
     })
     @Transactional
     public Shop deleteShop(long id) throws ShopNotFoundException {
@@ -110,5 +121,11 @@ public class ShopServiceImpl implements ShopService {
          shopRepository.deleteById(id);
 
          return shop;
+    }
+
+    @Override
+    @Cacheable(value = "existShopById", key = "#id")
+    public boolean existShopById(long id) {
+        return shopRepository.existsShopById(id);
     }
 }
