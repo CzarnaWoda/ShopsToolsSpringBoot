@@ -1,9 +1,9 @@
 # 🧐 Tools and Shops API
 ### Dokumentacja API do zarządzania sklepami i narzędziami
 
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1-green)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.1-green)
 ![Java](https://img.shields.io/badge/Java-17-blue)
-![Maven](https://img.shields.io/badge/Maven-3.8-orange)
+![Maven](https://img.shields.io/badge/Maven-4.0.0-orange)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-316192)
 ![Redis](https://img.shields.io/badge/Cache-Redis-red)
 ---
