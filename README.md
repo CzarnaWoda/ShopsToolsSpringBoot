@@ -5,7 +5,7 @@
 ![Java](https://img.shields.io/badge/Java-17-blue)
 ![Maven](https://img.shields.io/badge/Maven-3.8-orange)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-316192)
-
+![Redis](https://img.shields.io/badge/Cache-Redis-red)
 ---
 
 ## 📈 **Opis projektu**
@@ -17,7 +17,7 @@
 - 🔍 **Pobieranie** informacji o narzędziach i sklepach
 - ❌ **Usuwanie** sklepów i narzędzi
 
-API wykorzystuje **Spring Boot, Spring Data JPA, PostgreSQL, Hibernate oraz OpenAPI 3.1 (Swagger UI).**
+API wykorzystuje **Spring Boot, Spring Data JPA, PostgreSQL, Redis do cache, Hibernate oraz OpenAPI 3.1 (Swagger UI).**
 
 ---
 
@@ -26,6 +26,7 @@ API wykorzystuje **Spring Boot, Spring Data JPA, PostgreSQL, Hibernate oraz Open
 - Java 17+
 - Maven 3.8+
 - PostgreSQL 14+ (lub H2 dla testów)
+- Redis 
 
 ### 2️⃣ **Klonowanie repozytorium**
 ```bash
